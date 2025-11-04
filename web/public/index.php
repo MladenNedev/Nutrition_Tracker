@@ -61,7 +61,15 @@ $view->addGlobal('auth', [
 $router = new Router($view, $container);
 
 // 5) routes
-$router->get('/', [HomeController::class, 'hello']);
+$router->get('/', function() {
+    if (!empty($_SESSION['auth']['user_id'])) {
+        header('Location: /dashboard');
+    } else {
+        header('Location: /login');
+    }
+    exit;
+});
+
 
 $router->get('/login',    [AuthController::class, 'showLogin']);
 $router->post('/login',   [AuthController::class, 'login']);
