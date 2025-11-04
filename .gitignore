@@ -1,0 +1,38 @@
+# === PHP & Composer ===
+vendor/
+composer.lock
+
+# === Node & Vite ===
+node_modules/
+dist/
+.vite/
+*.log
+
+# === Docker ===
+.env
+.env.*
+docker-compose.override.yml
+**/docker-data/
+**/db_data/
+
+# === Build Artifacts ===
+public/assets/js/*
+public/assets/css/*
+!public/assets/js/.gitkeep
+!public/assets/css/.gitkeep
+
+# === IDEs & OS Files ===
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# === Cache ===
+cache/
+tmp/
+*.cache
+*.tmp
+
+# === Misc ===
+coverage/
+tests/_output/

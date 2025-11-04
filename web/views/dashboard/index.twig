@@ -1,0 +1,190 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="/assets/css/app.css">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Dashboard – {{ date }}</h1>
+    <form method="get" class="d-flex gap-2">
+      <input type="date" name="date" class="form-control form-control-sm" value="{{ date }}">
+      <button class="btn btn-sm btn-outline-primary">Go</button>
+    </form>
+  </div>
+
+  {# quick add meal form #}
+  <form method="post" action="/meals/add" class="row g-2 align-items-end mb-3">
+    <input type="hidden" name="date" value="{{ date }}">
+    <input type="hidden" name="redirect" value="/dashboard?date={{ date }}">
+
+    <div class="col-md-3">
+      <label class="form-label small mb-1">Meal</label>
+      <select name="slot" class="form-select form-select-sm" required>
+        <option value="Breakfast">Breakfast</option>
+        <option value="Lunch">Lunch</option>
+        <option value="Dinner">Dinner</option>
+        <option value="Snacks">Snacks</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label small mb-1">Food</label>
+      <div class="position-relative">
+        <input type="text"
+               id="food-search"
+               class="form-control form-control-sm"
+               autocomplete="off"
+               placeholder="Search foods..."
+               role="combobox"
+               aria-expanded="false"
+               aria-haspopup="listbox"
+               aria-controls="food-dropdown">
+        <input type="hidden" name="food_id" id="food-id-hidden" required>
+        <div id="food-dropdown" class="dropdown-menu w-100 border"
+             style="max-height: 300px; overflow-y: auto; display: none; position: absolute; top: 100%; left: 0; z-index: 1000; background: white;"
+             role="listbox"></div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label small mb-1">Quantity (g)</label>
+      <input type="number" step="1" min="1" name="quantity_g" class="form-control form-control-sm" required>
+    </div>
+
+    <div class="col-md-2 d-grid">
+      <button class="btn btn-sm btn-primary">Add meal</button>
+    </div>
+  </form>
+
+  <div class="row g-3 mb-3">
+    <div class="card mb-3">
+      <div class="card-body d-flex gap-3 align-items-center">
+        {# LEFT: donut #}
+        <div style="max-width: 50%; min-width: 200px; position: relative;">
+          <canvas id="macroChart" 
+                  data-calories="{{ totals.calories|default(0) }}"
+                  data-calories-goal="{{ goals.calories|default(2000) }}"
+                  data-protein="{{ totals.protein|default(0) }}"
+                  data-carbs="{{ totals.carbs|default(0) }}"
+                  data-fat="{{ totals.fat|default(0) }}"></canvas>
+          <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;">
+            {% set cal_now = totals.calories|default(0)|round(0, 'floor') %}
+            <div class="fw-semibold d-flex flex-row align-items-center">
+              <div style="font-size: 1.4rem;">🔥</div>{{ cal_now }} kcal
+            </div>
+            <div class="text-muted small">of {{ goals.calories|default(2000) }} kcal</div>
+          </div>
+        </div>
+
+        {# RIGHT: nutrient stats #}
+        <div class="flex-grow-1">
+          <div class="row g-3">
+            <div class="col-12">
+              {% set fi_now = totals.fiber|default(0) %}
+              {% set fi_goal = goals.fiber|default(25) %}
+              {% set fi_pct = fi_goal > 0 ? (fi_now / fi_goal * 100) : 0 %}
+              {% if fi_pct > 100 %}{% set fi_pct = 100 %}{% endif %}
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">Fiber</span>
+                <span>{{ fi_now|round(0,'floor') }} / {{ fi_goal }} g</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ fi_pct }}%; background: linear-gradient(to left,#11998e, #38ef7d)"></div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              {% set p_now = totals.protein|default(0) %}
+              {% set p_goal = goals.protein|default(120) %}
+              {% set p_pct = p_goal > 0 ? (p_now / p_goal * 100) : 0 %}
+              {% if p_pct > 100 %}{% set p_pct = 100 %}{% endif %}
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">Protein</span>
+                <span>{{ p_now|round(0, 'floor') }} / {{ p_goal }} g</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ p_pct }}%; background: linear-gradient( to left, #5433FF, #20BDFF, #6FB1FC)"></div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              {% set c_now = totals.carbs|default(0) %}
+              {% set c_goal = goals.carbs|default(220) %}
+              {% set c_pct = c_goal > 0 ? (c_now / c_goal * 100) : 0 %}
+              {% if c_pct > 100 %}{% set c_pct = 100 %}{% endif %}
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">Carbs</span>
+                <span>{{ c_now|round(0, 'floor') }} / {{ c_goal }} g</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ c_pct }}%; background: linear-gradient(to left, #f12711, #f5af19)"></div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              {% set f_now = totals.fat|default(0) %}
+              {% set f_goal = goals.fat|default(70) %}
+              {% set f_pct = f_goal > 0 ? (f_now / f_goal * 100) : 0 %}
+              {% if f_pct > 100 %}{% set f_pct = 100 %}{% endif %}
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">Fat</span>
+                <span>{{ f_now|round(0, 'floor') }} / {{ f_goal }} g</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ f_pct }}%; background: linear-gradient(to left, #bc4e9c, #f80759)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# MEAL SLOTS #}
+  {% set slots = {
+    'breakfast': 'Breakfast',
+    'lunch': 'Lunch',
+    'dinner': 'Dinner',
+    'snacks': 'Snacks'
+  } %}
+
+  <div class="row g-3">
+    {% for key, label in slots %}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="h6 text-uppercase mb-3">{{ label }}</h3>
+            {% set items = by_slot[key] ?? [] %}
+            {% if items is empty %}
+              <p class="text-muted mb-0">No items.</p>
+            {% else %}
+              <ul class="list-unstyled mb-0">
+                {% for item in items %}
+                  <li class="d-flex justify-content-between mb-2 pb-2 {% if not loop.last %}border-bottom{% endif %}">
+                    <span>
+                      <strong>{{ item.food_name|default('Unknown food') }}</strong>
+                      {% if item.quantity_g is defined %}
+                        <br><small class="text-muted">{{ item.quantity_g }} g</small>
+                      {% endif %}
+                    </span>
+                    <span class="text-end">
+                      <strong>{{ item.calories|default(0)|round(0, 'floor') }} kcal</strong>
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/assets/js/app.js" defer></script>
+
+{% endblock %}
+
+

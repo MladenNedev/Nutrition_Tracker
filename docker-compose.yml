@@ -1,0 +1,61 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile   # <-- change if your file is named 'dockerfile' or 'dopckerfile'
+    ports:
+      - "8081:80"
+    environment:
+      DB_HOST: mysql8
+      DB_NAME: nutrition_tracker
+      DB_USER: root
+      DB_PASS: root
+      DB_PORT: "3306"
+    depends_on:
+      - mysql8
+    networks:
+      - mynet
+
+  phpapp:
+    build:
+      context: ./web
+      dockerfile: Dockerfile   # <-- change if your file is named 'dockerfile'
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/var/www/html
+    depends_on:
+      - api
+    networks:
+      - mynet
+
+  mysql8:
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: nutrition_tracker
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - mynet
+
+  pma:
+    image: phpmyadmin:latest
+    restart: always
+    environment:
+      PMA_HOST: mysql8
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8082:80"
+    depends_on:
+      - mysql8
+    networks:
+      - mynet
+
+volumes:
+  db_data:
+
+networks:
+  mynet:

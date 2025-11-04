@@ -1,0 +1,62 @@
+PHASE 1 — Environment Setup
+-----------------------------------------------------
+- Docker setup (db, php, phpMyAdmin)
+- Files: docker-compose.yml
+- Decisions: MySQL 8, PHP 8.3, ARM64 images for M1
+- Key learning: isolated environment prevents host issues
+
+PHASE 2 — Backend/API Development
+-----------------------------------------------------
+- get_meals.php → lists meals per user/date
+- add_meal.php → inserts new meal
+- get_meal_details.php → fetches full meal (meal + items + totals)
+- helpers.php → parameter validation, PDO wrappers, json helpers
+- Design reasoning: 3-query separation to avoid row explosion
+- SQL aggregation instead of PHP loops
+- Future-proof user_id for auth phase
+- Testing: Postman examples, JSON output verified
+
+PHASE 3 — Authentication & Frontend Integration (future)
+-----------------------------------------------------
+- Planned: login endpoint, token/session
+- Planned: secure endpoints via user_id
+- Planned: frontend integration via JS/Fetch API
+
+NOTES:
+-----------------------------------------------------
+- Every helper or function decision should have short reason.
+- At end: each phase → mapped to LO1–LO4
+
+
+CHECKPOINT: Backend MVP complete
+--------------------------------
+Date: [today’s date]
+Endpoints:
+- get_meals.php → lists user meals
+- add_meal.php → inserts new meal
+- get_meal_details.php → meal + items + nutrient totals
+Design decisions:
+- Aggregation done in SQL (performance)
+- require_param + optional_param for validation
+- pdo_all / pdo_one for cleaner DB access
+- JSON contract: {meal, items, totals}
+Next step:
+- Implement authentication (login/register)
+- Add session- or token-based user ownership check
+- Build frontend (HTML + JS) to call APIs
+
+
+Realisation (LO3): “Implemented transactional endpoint to create meal + items in one request. Validates JSON body, types, and item shape. Uses a single prepared statement for item inserts to avoid SQL injection and improve performance. On any failure, transaction rolls back to maintain consistency.”
+
+Artefacts: request/response screenshot from Postman, code snippet of validation + transaction.
+
+PHASE 2 COMPLETE – Core Backend Functionality
+----------------------------------------------
+- Confirmed functional APIs: get_meals, get_meal_details, add_meal
+- Tested via Postman with valid JSON body
+- Insert and retrieval verified in MySQL
+- Implemented transactional inserts (rollback on failure)
+- Environment stable via Docker Compose (ports 8080/9090)
+Next phase:
+- Implement user authentication (PHP sessions)
+- Secure all endpoints by user ownership
